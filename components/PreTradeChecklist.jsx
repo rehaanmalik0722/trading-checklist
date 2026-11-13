@@ -133,19 +133,16 @@ export default function PreTradeChecklist() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Market & Timeframe State
-  const [session, setSession] = useState("Asia");
+  const [session, setSession] = useState(() => getCurrentSessionIST());
 
   useEffect(() => {
-    // App load hote hi current IST session set karein
-    setSession(getCurrentSessionIST());
-
-    // Har 1 minute me check karein taaki session change hone par auto-switch ho jaye
     const interval = setInterval(() => {
       setSession(getCurrentSessionIST());
     }, 60000);
 
     return () => clearInterval(interval);
   }, []);
+
   const [pair, setPair] = useState("XAUUSD");
   const [tradeStyle, setTradeStyle] = useState("Intraday");
   const [timeframe, setTimeframe] = useState("15M");
