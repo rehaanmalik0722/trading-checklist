@@ -95,7 +95,6 @@ const STRATEGIES = [
   "Support & Resistance",
   "3-Touch Points",
   "30M Setup",
-  "OB Setup",
   "3-Candle Liquidity Sweep",
 ];
 
