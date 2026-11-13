@@ -106,6 +106,25 @@ const EMOTIONS = [
   { label: "Revenge / FOMO", safe: false },
 ];
 
+function getCurrentSessionIST() {
+  // Current IST time nikalne ke liye
+  const now = new Date();
+  const istString = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+  const istDate = new Date(istString);
+  const totalMinutes = istDate.getHours() * 60 + istDate.getMinutes();
+
+  // 05:30 AM (330 min) se 01:30 PM (810 min) -> Asia
+  if (totalMinutes >= 330 && totalMinutes < 810) {
+    return "Asia";
+  }
+  // 01:30 PM (810 min) se 06:30 PM (1110 min) -> London
+  if (totalMinutes >= 810 && totalMinutes < 1110) {
+    return "London";
+  }
+  // 06:30 PM (1110 min) se 05:30 AM -> NY
+  return "NY";
+}
+
 export default function PreTradeChecklist() {
   const [darkMode, setDarkMode] = useState(true);
   const [checkedItems, setCheckedItems] = useState({});
@@ -114,15 +133,29 @@ export default function PreTradeChecklist() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Market & Timeframe State
-  const [session, setSession] = useState("NY");
+  const [session, setSession] = useState("Asia");
+
+  useEffect(() => {
+    // App load hote hi current IST session set karein
+    setSession(getCurrentSessionIST());
+
+    // Har 1 minute me check karein taaki session change hone par auto-switch ho jaye
+    const interval = setInterval(() => {
+      setSession(getCurrentSessionIST());
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
   const [pair, setPair] = useState("XAUUSD");
   const [tradeStyle, setTradeStyle] = useState("Intraday");
   const [timeframe, setTimeframe] = useState("15M");
 
   // Strategy & Execution State
-  const [strategy, setStrategy] = useState("3-Touch Point");
+  const [strategy, setStrategy] = useState("3-Touch Points");
   const [direction, setDirection] = useState("BUY");
   const [lotSize, setLotSize] = useState("0.01");
+  const [riskAmount, setRiskAmount] = useState("2"); // Default $2 risk on 0.01 lot
+  const [targetRR, setTargetRR] = useState("1:2");   // Minimum 1:1.5 or 1:2 R:R
 
   // Psychology State
   const [emotion, setEmotion] = useState("Calm");
@@ -506,7 +539,7 @@ export default function PreTradeChecklist() {
                 </div>
 
                 {/* Category Tabs */}
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-3 no-scrollbar">
+                <div className="grid grid-cols-3 gap-1.5 mb-3 pb-2 mb-3 no-scrollbar">
                   {CATEGORIES.map((category) => {
                     const isActive = activeCategory === category;
                     const catItems = CHECKLIST_DATA.filter(
