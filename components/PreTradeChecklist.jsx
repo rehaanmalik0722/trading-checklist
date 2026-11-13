@@ -154,8 +154,6 @@ export default function PreTradeChecklist() {
   const [strategy, setStrategy] = useState("3-Touch Points");
   const [direction, setDirection] = useState("BUY");
   const [lotSize, setLotSize] = useState("0.01");
-  const [riskAmount, setRiskAmount] = useState("2"); // Default $2 risk on 0.01 lot
-  const [targetRR, setTargetRR] = useState("1:2");   // Minimum 1:1.5 or 1:2 R:R
 
   // Psychology State
   const [emotion, setEmotion] = useState("Calm");
@@ -539,7 +537,7 @@ export default function PreTradeChecklist() {
                 </div>
 
                 {/* Category Tabs */}
-                <div className="grid grid-cols-3 gap-1.5 mb-3 pb-2 mb-3 no-scrollbar">
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-3 no-scrollbar">
                   {CATEGORIES.map((category) => {
                     const isActive = activeCategory === category;
                     const catItems = CHECKLIST_DATA.filter(
