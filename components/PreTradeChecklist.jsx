@@ -19,83 +19,79 @@ import {
 } from "lucide-react";
 
 const CHECKLIST_DATA = [
+  // Tab 1: Mental & Cool-Down
   {
-    id: "1",
-    label: "15-Minute Office Reset Complete",
-    subline:
-      "Office ka kaam band karne ke baad kam se kam 15 min ka break liya hai aur dimag shant hai",
-    category: "1. Mental & Session",
+    id: "office_reset",
+    tab: "mental",
+    title: "15-Minute Office Reset Complete",
+    desc: "Office ka kaam band karne ke baad kam se kam 15 min ka break liya hai aur dimag shant hai.",
   },
   {
-    id: "2",
-    label: "Daily Loss/Trade Limit Safe Hai",
-    subline:
-      "Daily stop-loss hit nahi hua hai aur max 2–3 trades ki limit bachi hai",
-    category: "1. Mental & Session",
+    id: "post_sl_cooldown",
+    tab: "mental",
+    title: "30-Min Cool-Down & Profit Floor Safe",
+    desc: "Pichhle SL ko 30 min ho chuke hain, max 2–3 trades bache hain, aur aaj ka profit safe hai.",
   },
   {
-    id: "3",
-    label: "HTF Trendline / S&R / 3-Touch Point Aligned",
-    subline:
-      "Higher Timeframe Trendline, key S&R zone, ya 3rd Touch Point confirmation mil chuka hai",
-    category: "2. Strategy & Timeframe",
+    id: "no_fomo_calm",
+    tab: "mental",
+    title: "Zero Revenge / Zero FOMO Mindset",
+    desc: "Kisi pichhle loss ko recover karne ke liye nahi, balki sirf fresh A+ plan par trade le raha hoon.",
+  },
+
+  // Tab 2: Setup & Candle Close
+  {
+    id: "htf_trend",
+    tab: "strategy",
+    title: "Higher Timeframe Trend ke Saath Trade",
+    desc: "1H/4H trend direction ke saath hi entry hai — counter-trend trade bilkul nahi.",
   },
   {
-    id: "4",
-    label: "Order Block / 3-Candle Liquidity Sweep Confirmed",
-    subline:
-      "Selected timeframe (1M/5M/15M/30M/1H) par clean 3-Candle Sweep ya Order Block rejection hai",
-    category: "2. Strategy & Timeframe",
+    id: "smc_confirmation",
+    tab: "strategy",
+    title: "Liquidity Sweep + MSS + FVG / 3-Tap",
+    desc: "Major swing liquidity sweep aur Market Structure Shift ke baad clear FVG ya 3-Touch level par entry hai.",
   },
   {
-    id: "5",
-    label: "One-Click Trading OFF Hai",
-    subline:
-      "Order lene se pehle confirmation pop-up screen dikh rahi hai",
-    category: "3. Execution Safety",
+    id: "candle_close",
+    tab: "strategy",
+    title: "15M Candle Close Confirmed (No Running Entry)",
+    desc: "Setup bante hi running candle me nahi kooda — current 15M candle close hone ka wait kiya hai.",
+  },
+
+  // Tab 3: Execution & Risk Safety
+  {
+    id: "lot_and_oneclick",
+    tab: "safety",
+    title: "0.01 Lot Lock & One-Click Trading OFF",
+    desc: "XM terminal me volume 0.01 verify kiya hai aur confirmation window ON hai.",
   },
   {
-    id: "6",
-    label: "Lot Size Sirf 0.01 Verify Kiya",
-    subline:
-      "Volume box me 0.01 hi likha hai (0.1 ya 0.3 ki koi galti nahi hai)",
-    category: "3. Execution Safety",
-  },
-  {
-    id: "7",
-    label: "Hard Stop-Loss (SL) aur Take-Profit (TP) Set",
-    subline:
-      "Order lagate hi SL aur TP system me daal diya hai — bina SL ke koi trade nahi",
-    category: "3. Execution Safety",
-  },
-  {
-    id: "8",
-    label: "Profit Skimming Rule Follow Kiya",
-    subline:
-      "Account 50%–100% badhne par base capital withdraw kar liya hai",
-    category: "4. Post-Trade",
+    id: "hard_sl_rr",
+    tab: "safety",
+    title: "Hard SL & Minimum 1:1.5 R:R Set",
+    desc: "Opposing liquidity pool tak kam se kam 1:1.5 R:R hai aur entry ke saath Hard SL set hai.",
   },
 ];
 
-const CATEGORIES = [
-  "1. Mental & Session",
-  "2. Strategy & Timeframe",
-  "3. Execution Safety",
-  "4. Post-Trade",
+const EXECUTION_TABS = [
+  { id: "mental", label: "1. Mental" },
+  { id: "strategy", label: "2. Setup" },
+  { id: "safety", label: "3. Safety" },
 ];
 
 const TRADE_STYLES = {
-  Swing: ["30M", "1H"],
-  Intraday: ["5M", "15M"],
   Scalping: ["1M", "5M"],
+  Intraday: ["5M", "15M"],
+  Swing: ["30M", "1H"],
 };
 
 const STRATEGIES = [
   "HTF Trendline",
   "Support & Resistance",
-  "3-Touch Points",
+  "Trendline 3-Touch Points",
   "30M Setup",
-  "3-Candle Liquidity Sweep",
+  "3 Candle Liquidity Sweep",
 ];
 
 const EMOTIONS = [
@@ -107,7 +103,6 @@ const EMOTIONS = [
 ];
 
 function getCurrentSessionIST() {
-  // Current IST time nikalne ke liye
   const now = new Date();
   const istString = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
   const istDate = new Date(istString);
@@ -128,19 +123,26 @@ function getCurrentSessionIST() {
 export default function PreTradeChecklist() {
   const [darkMode, setDarkMode] = useState(true);
   const [checkedItems, setCheckedItems] = useState({});
-  const [activeCategory, setActiveCategory] = useState(CATEGORIES[0]);
+  const [activeTab, setActiveTab] = useState("mental");
   const [journalEntries, setJournalEntries] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Market & Timeframe State
-  const [session, setSession] = useState(() => getCurrentSessionIST());
+  // Market & Timeframe State (Auto IST Session)
+  const [session, setSession] = useState("Asia");
 
   useEffect(() => {
+    const initialTimer = setTimeout(() => {
+      setSession(getCurrentSessionIST());
+    }, 0);
+
     const interval = setInterval(() => {
       setSession(getCurrentSessionIST());
     }, 60000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(initialTimer);
+      clearInterval(interval);
+    };
   }, []);
 
   const [pair, setPair] = useState("XAUUSD");
@@ -148,9 +150,11 @@ export default function PreTradeChecklist() {
   const [timeframe, setTimeframe] = useState("15M");
 
   // Strategy & Execution State
-  const [strategy, setStrategy] = useState("3-Touch Points");
+  const [strategy, setStrategy] = useState("Trendline 3-Touch Points");
   const [direction, setDirection] = useState("BUY");
   const [lotSize, setLotSize] = useState("0.01");
+  const [riskAmount, setRiskAmount] = useState("2");
+  const [targetRR, setTargetRR] = useState("1:2");
 
   // Psychology State
   const [emotion, setEmotion] = useState("Calm");
@@ -162,17 +166,21 @@ export default function PreTradeChecklist() {
   const [learning, setLearning] = useState("");
 
   useEffect(() => {
-    try {
-      const savedTheme = localStorage.getItem("journal_theme_mode");
-      const savedChecklist = localStorage.getItem("pre_trade_checklist_v4");
-      const savedJournal = localStorage.getItem("trading_journal_logs_v4");
-      if (savedTheme !== null) setDarkMode(JSON.parse(savedTheme));
-      if (savedChecklist) setCheckedItems(JSON.parse(savedChecklist));
-      if (savedJournal) setJournalEntries(JSON.parse(savedJournal));
-    } catch (e) {
-      console.error("Failed to load storage:", e);
-    }
-    setIsLoaded(true);
+    const loadTimer = setTimeout(() => {
+      try {
+        const savedTheme = localStorage.getItem("journal_theme_mode");
+        const savedChecklist = localStorage.getItem("pre_trade_checklist_v5");
+        const savedJournal = localStorage.getItem("trading_journal_logs_v5");
+        if (savedTheme !== null) setDarkMode(JSON.parse(savedTheme));
+        if (savedChecklist) setCheckedItems(JSON.parse(savedChecklist));
+        if (savedJournal) setJournalEntries(JSON.parse(savedJournal));
+      } catch (e) {
+        console.error("Failed to load storage:", e);
+      }
+      setIsLoaded(true);
+    }, 0);
+
+    return () => clearTimeout(loadTimer);
   }, []);
 
   useEffect(() => {
@@ -184,7 +192,7 @@ export default function PreTradeChecklist() {
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem(
-        "pre_trade_checklist_v4",
+        "pre_trade_checklist_v5",
         JSON.stringify(checkedItems)
       );
     }
@@ -193,7 +201,7 @@ export default function PreTradeChecklist() {
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem(
-        "trading_journal_logs_v4",
+        "trading_journal_logs_v5",
         JSON.stringify(journalEntries)
       );
     }
@@ -213,26 +221,30 @@ export default function PreTradeChecklist() {
 
   const resetForm = () => {
     setCheckedItems({});
-    setActiveCategory(CATEGORIES[0]);
+    setActiveTab("mental");
     setEmotion("Calm");
     setPlannedTrade("Yes");
     setLotSize("0.01");
+    setRiskAmount("2");
+    setTargetRR("1:2");
     setPnl("");
     setLearning("");
   };
 
   const totalItems = CHECKLIST_DATA.length;
-  const completedCount = Object.values(checkedItems).filter(Boolean).length;
+  const completedCount = CHECKLIST_DATA.filter(
+    (item) => checkedItems[item.id]
+  ).length;
   const isChecklistDone = completedCount === totalItems;
 
   const selectedEmotionObj = EMOTIONS.find((e) => e.label === emotion);
   const isPsychologySafe = selectedEmotionObj?.safe && plannedTrade === "Yes";
-  const isLotSafe = lotSize === "0.01";
-  const isTradeUnlocked = isChecklistDone && isPsychologySafe && isLotSafe;
+  const isLotSafe = lotSize.trim() === "0.01";
+  const isRiskValid = parseFloat(riskAmount) > 0;
+  const isTradeUnlocked =
+    isChecklistDone && isPsychologySafe && isLotSafe && isRiskValid;
 
-  const filteredItems = CHECKLIST_DATA.filter(
-    (item) => item.category === activeCategory
-  );
+  const filteredItems = CHECKLIST_DATA.filter((item) => item.tab === activeTab);
 
   const handleSaveJournal = (e) => {
     e.preventDefault();
@@ -253,6 +265,8 @@ export default function PreTradeChecklist() {
       strategy,
       direction,
       lotSize,
+      riskAmount: parseFloat(riskAmount) || 0,
+      targetRR,
       emotion,
       outcome,
       pnl: numericPnl,
@@ -278,6 +292,8 @@ export default function PreTradeChecklist() {
       "Strategy",
       "Direction",
       "Lot",
+      "SL Risk ($)",
+      "Target R:R",
       "Emotion",
       "Outcome",
       "PnL ($)",
@@ -292,6 +308,8 @@ export default function PreTradeChecklist() {
       `"${entry.strategy}"`,
       entry.direction,
       entry.lotSize,
+      entry.riskAmount ?? "",
+      entry.targetRR ?? "",
       entry.emotion,
       entry.outcome,
       entry.pnl,
@@ -343,27 +361,34 @@ export default function PreTradeChecklist() {
   const dividerBorder = darkMode ? "border-[#2e3033]" : "border-slate-200";
 
   return (
-    <div className={`min-h-screen w-full py-6 px-4 sm:px-6 transition-colors duration-200 ${wrapperBg}`}>
-      <div className="w-full max-w-5xl mx-auto space-y-6">
+    <div
+      className={`min-h-screen w-full py-5 px-3 sm:px-6 transition-colors duration-200 ${wrapperBg}`}
+    >
+      <div className="w-full max-w-5xl mx-auto space-y-5">
         {/* MAIN HYBRID JOURNAL CARD */}
-        <div className={`rounded-3xl border p-6 sm:p-8 shadow-xl transition-colors ${cardBg}`}>
+        <div
+          className={`rounded-3xl border p-4 sm:p-8 shadow-xl transition-colors ${cardBg}`}
+        >
           {/* Title, Theme Toggle & Reset */}
-          <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b ${dividerBorder}`}>
+          <div
+            className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b ${dividerBorder}`}
+          >
             <div>
               <span className="text-[11px] uppercase tracking-widest text-emerald-500 font-semibold">
                 Plan • Execute • Reflect • Improve
               </span>
-              <h1 className={`text-xl sm:text-2xl font-semibold mt-0.5 ${headingText}`}>
+              <h1
+                className={`text-lg sm:text-2xl font-semibold mt-0.5 ${headingText}`}
+              >
                 Smart Pre-Trade Checklist & Trading Journal
               </h1>
             </div>
 
             <div className="flex items-center gap-2 self-start sm:self-auto">
-              {/* Light / Dark Mode Switch */}
               <button
                 type="button"
                 onClick={() => setDarkMode(!darkMode)}
-                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium border transition cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition cursor-pointer ${
                   darkMode
                     ? "bg-[#2b2d30] border-[#3c4043] text-amber-300 hover:bg-[#37393d]"
                     : "bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200"
@@ -384,7 +409,7 @@ export default function PreTradeChecklist() {
               <button
                 type="button"
                 onClick={resetForm}
-                className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-full text-xs font-medium transition cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition cursor-pointer ${
                   darkMode
                     ? "bg-[#2b2d30] hover:bg-[#37393d] text-[#c4c7c5]"
                     : "bg-slate-200 hover:bg-slate-300 text-slate-700"
@@ -397,12 +422,17 @@ export default function PreTradeChecklist() {
           </div>
 
           {/* TOP CONTEXT BAR: SESSION | PAIR | TRADE STYLE & TIMEFRAME */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 my-5">
-            {/* Market Session */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 my-4">
+            {/* Market Session (Auto IST) */}
             <div className={`border rounded-2xl p-3 ${subCardBg}`}>
-              <label className={`block text-[11px] mb-1.5 ${mutedText}`}>
-                Market Session
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className={`text-[11px] ${mutedText}`}>
+                  Market Session
+                </label>
+                <span className="text-[10px] text-emerald-500 font-medium">
+                  IST Auto
+                </span>
+              </div>
               <div className="flex gap-1.5">
                 {["Asia", "London", "NY"].map((s) => (
                   <button
@@ -454,7 +484,9 @@ export default function PreTradeChecklist() {
             {/* Trade Style & Execution Timeframe */}
             <div className={`border rounded-2xl p-3 ${subCardBg}`}>
               <div className="flex items-center justify-between mb-1.5">
-                <label className={`text-[11px] flex items-center gap-1 ${mutedText}`}>
+                <label
+                  className={`text-[11px] flex items-center gap-1 ${mutedText}`}
+                >
                   <Clock className="w-3 h-3 text-sky-500" /> Style & Timeframe
                 </label>
                 <div className="flex gap-1">
@@ -495,8 +527,8 @@ export default function PreTradeChecklist() {
             </div>
           </div>
 
-          {/* STRATEGY PILL SELECTOR (5 Setups Including 3-Touch Point) */}
-          <div className={`border rounded-2xl p-3.5 mb-5 ${subCardBg}`}>
+          {/* STRATEGY PILL SELECTOR */}
+          <div className={`border rounded-2xl p-3.5 mb-4 ${subCardBg}`}>
             <label className={`block text-[11px] mb-2 ${mutedText}`}>
               Active Setup / Strategy ({tradeStyle} • {timeframe})
             </label>
@@ -519,56 +551,75 @@ export default function PreTradeChecklist() {
           </div>
 
           {/* TWO-COLUMN CORE: LEFT = EXECUTION PLAN & CHECKLIST | RIGHT = PSYCHOLOGY */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 my-5">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 my-4">
             {/* LEFT COLUMN (7 cols): TRADE EXECUTION & 8-RULE CHECKLIST */}
-            <div className={`lg:col-span-7 border rounded-2xl p-4 sm:p-5 flex flex-col justify-between ${subCardBg}`}>
+            <div
+              className={`lg:col-span-7 border rounded-2xl p-4 sm:p-5 flex flex-col justify-between ${subCardBg}`}
+            >
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h2 className={`text-xs uppercase tracking-wider font-semibold flex items-center gap-2 ${headingText}`}>
+                  <h2
+                    className={`text-xs uppercase tracking-wider font-semibold flex items-center gap-2 ${headingText}`}
+                  >
                     <Target className="w-4 h-4 text-emerald-500" />
                     Trade Execution (The Plan)
                   </h2>
-                  <span className={`text-xs ${mutedText}`}>
-                    {completedCount}/{totalItems} Rules Verified
+                  <span
+                    className={`text-[11px] font-mono px-2 py-0.5 rounded-full border ${
+                      isChecklistDone
+                        ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-400"
+                        : darkMode
+                        ? "bg-[#252729] border-[#35373b] text-[#9aa0a6]"
+                        : "bg-slate-200 border-slate-300 text-slate-600"
+                    }`}
+                  >
+                    {completedCount}/{totalItems} Verified
                   </span>
                 </div>
 
-                {/* Category Tabs */}
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-3 no-scrollbar">
-                  {CATEGORIES.map((category) => {
-                    const isActive = activeCategory === category;
-                    const catItems = CHECKLIST_DATA.filter(
-                      (i) => i.category === category
+                {/* 3 Compact Tabs (Fits 480px Drawer Cleanly Without Cutting) */}
+                <div className="grid grid-cols-3 gap-1.5 mb-3">
+                  {EXECUTION_TABS.map((tab) => {
+                    const isActive = activeTab === tab.id;
+                    const tabItems = CHECKLIST_DATA.filter(
+                      (i) => i.tab === tab.id
                     );
-                    const catDone = catItems.every((i) => checkedItems[i.id]);
+                    const tabDoneCount = tabItems.filter(
+                      (i) => checkedItems[i.id]
+                    ).length;
+                    const isTabComplete = tabDoneCount === tabItems.length;
 
                     return (
                       <button
-                        key={category}
+                        key={tab.id}
                         type="button"
-                        onClick={() => setActiveCategory(category)}
-                        className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition flex items-center gap-1.5 cursor-pointer ${
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`px-2 py-1.5 rounded-xl text-[11px] font-semibold transition flex items-center justify-center gap-1.5 truncate cursor-pointer border ${
                           isActive
                             ? darkMode
-                              ? "bg-[#3c4043] text-white"
-                              : "bg-slate-800 text-white"
-                            : `${mutedText} hover:opacity-80`
+                              ? "bg-[#3c4043] text-white border-[#52565a]"
+                              : "bg-slate-800 text-white border-slate-800"
+                            : darkMode
+                            ? "bg-[#1e1f20] text-[#9aa0a6] border-[#2b2d30] hover:text-white"
+                            : "bg-white text-slate-600 border-slate-200 hover:text-slate-900"
                         }`}
                       >
-                        <span>{category}</span>
-                        {catDone && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                        <span className="truncate">
+                          {tab.label} ({tabDoneCount}/{tabItems.length})
+                        </span>
+                        {isTabComplete && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
                         )}
                       </button>
                     );
                   })}
                 </div>
 
-                {/* Active Category Items */}
-                <div className="space-y-2.5 min-h-[165px]">
+                {/* Active Tab Checklist Items */}
+                <div className="space-y-2.5 min-h-[210px]">
                   {filteredItems.map((item) => {
                     const isChecked = !!checkedItems[item.id];
-                    const isLotCheck = item.id === "6";
+                    const isLotCheck = item.id === "lot_and_oneclick";
 
                     return (
                       <div
@@ -577,10 +628,10 @@ export default function PreTradeChecklist() {
                         className={`flex items-start gap-3 p-3 rounded-xl border transition cursor-pointer select-none ${
                           darkMode
                             ? isChecked
-                              ? "bg-[#1e2022] border-transparent"
+                              ? "bg-emerald-950/20 border-emerald-500/30"
                               : "bg-[#1e1f20] border-[#2b2d30] hover:bg-[#252729]"
                             : isChecked
-                            ? "bg-slate-100 border-slate-200"
+                            ? "bg-emerald-50 border-emerald-200"
                             : "bg-white border-slate-200 hover:bg-slate-50"
                         }`}
                       >
@@ -599,16 +650,16 @@ export default function PreTradeChecklist() {
                           )}
                         </button>
 
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span
-                              className={`text-sm font-medium ${
+                              className={`text-xs sm:text-sm font-medium leading-snug ${
                                 isChecked
-                                  ? "line-through opacity-50"
+                                  ? "line-through opacity-60 text-emerald-400"
                                   : headingText
                               }`}
                             >
-                              {item.label}
+                              {item.title}
                             </span>
                             {isLotCheck && (
                               <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-500 border border-amber-500/30">
@@ -616,8 +667,10 @@ export default function PreTradeChecklist() {
                               </span>
                             )}
                           </div>
-                          <p className={`text-xs mt-0.5 ${mutedText}`}>
-                            {item.subline}
+                          <p
+                            className={`text-[11px] sm:text-xs mt-1 leading-relaxed ${mutedText}`}
+                          >
+                            {item.desc}
                           </p>
                         </div>
                       </div>
@@ -626,8 +679,11 @@ export default function PreTradeChecklist() {
                 </div>
               </div>
 
-              {/* Direction & Lot Size Row */}
-              <div className={`grid grid-cols-2 gap-3 pt-4 mt-4 border-t ${dividerBorder}`}>
+              {/* 2x2 Execution Parameters: Direction | Lot Size | SL Risk ($) | Target R:R */}
+              <div
+                className={`grid grid-cols-2 gap-3 pt-4 mt-4 border-t ${dividerBorder}`}
+              >
+                {/* Direction */}
                 <div>
                   <label className={`block text-[11px] mb-1 ${mutedText}`}>
                     Direction
@@ -658,6 +714,7 @@ export default function PreTradeChecklist() {
                   </div>
                 </div>
 
+                {/* Position Size (Lots) */}
                 <div>
                   <label className={`block text-[11px] mb-1 ${mutedText}`}>
                     Position Size (Lots)
@@ -673,13 +730,61 @@ export default function PreTradeChecklist() {
                     }`}
                   />
                 </div>
+
+                {/* SL Risk ($) */}
+                <div>
+                  <label className={`block text-[11px] mb-1 ${mutedText}`}>
+                    SL Risk ($)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    min="0.5"
+                    value={riskAmount}
+                    onChange={(e) => setRiskAmount(e.target.value)}
+                    placeholder="e.g. 2"
+                    className={`w-full border rounded-xl px-3 py-1.5 text-xs font-mono font-semibold focus:outline-none ${
+                      isRiskValid
+                        ? `${inputBg} border-rose-500/40 text-rose-400 focus:border-rose-400`
+                        : `${inputBg} border-red-500 text-red-500`
+                    }`}
+                  />
+                </div>
+
+                {/* Target R:R */}
+                <div>
+                  <label className={`block text-[11px] mb-1 ${mutedText}`}>
+                    Target R:R{" "}
+                    <span className="text-emerald-500">(Min 1.5R)</span>
+                  </label>
+                  <div className="grid grid-cols-3 gap-1">
+                    {["1:1.5", "1:2", "1:3"].map((rr) => (
+                      <button
+                        key={rr}
+                        type="button"
+                        onClick={() => setTargetRR(rr)}
+                        className={`py-1.5 rounded-xl text-[11px] font-semibold transition cursor-pointer ${
+                          targetRR === rr
+                            ? "bg-emerald-500/20 text-emerald-500 border border-emerald-500/40"
+                            : pillInactive
+                        }`}
+                      >
+                        {rr}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* RIGHT COLUMN (5 cols): TRADE PSYCHOLOGY (THE MIND) */}
-            <div className={`lg:col-span-5 border rounded-2xl p-4 sm:p-5 flex flex-col justify-between ${subCardBg}`}>
+            <div
+              className={`lg:col-span-5 border rounded-2xl p-4 sm:p-5 flex flex-col justify-between ${subCardBg}`}
+            >
               <div className="space-y-4">
-                <h2 className={`text-xs uppercase tracking-wider font-semibold flex items-center gap-2 ${headingText}`}>
+                <h2
+                  className={`text-xs uppercase tracking-wider font-semibold flex items-center gap-2 ${headingText}`}
+                >
                   <Brain className="w-4 h-4 text-purple-500" />
                   Trade Psychology (The Mind)
                 </h2>
@@ -756,17 +861,21 @@ export default function PreTradeChecklist() {
                 <div>
                   <p className={`text-xs font-semibold ${headingText}`}>
                     {isTradeUnlocked
-                      ? `SAFE TO EXECUTE (${strategy} • ${timeframe})`
+                      ? `SAFE TO EXECUTE (${strategy} • ${targetRR})`
                       : "EXECUTION LOCKED"}
                   </p>
-                  <p className={`text-[11px] mt-0.5 leading-relaxed ${mutedText}`}>
+                  <p
+                    className={`text-[11px] mt-0.5 leading-relaxed ${mutedText}`}
+                  >
                     {!isLotSafe
                       ? "Lot size 0.01 par wapas set karein!"
+                      : !isRiskValid
+                      ? "Valid SL Risk ($) amount enter karein."
                       : !isPsychologySafe
                       ? "Emotion 'Calm/Confident' aur Planned 'Yes' hona zaroori hai."
                       : !isChecklistDone
                       ? `Abhi ${totalItems - completedCount} checklist rules baki hain.`
-                      : "Setup aur mindset dono verified hain. Trade ke baad niche log karein."}
+                      : `SL Risk $${riskAmount} aur ${targetRR} verified. Trade ke baad niche log karein.`}
                   </p>
                 </div>
               </div>
@@ -778,13 +887,15 @@ export default function PreTradeChecklist() {
             onSubmit={handleSaveJournal}
             className={`border rounded-2xl p-4 sm:p-5 ${subCardBg}`}
           >
-            <h2 className={`text-xs uppercase tracking-wider font-semibold flex items-center gap-2 mb-3 ${headingText}`}>
+            <h2
+              className={`text-xs uppercase tracking-wider font-semibold flex items-center gap-2 mb-3 ${headingText}`}
+            >
               <BarChart3 className="w-4 h-4 text-sky-500" />
               Trade Outcome & Key Learning
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-              {/* Result Buttons (Win / Loss / Breakeven) */}
+              {/* Result Buttons */}
               <div className="sm:col-span-4">
                 <label className={`block text-[11px] mb-1 ${mutedText}`}>
                   Result
@@ -821,7 +932,7 @@ export default function PreTradeChecklist() {
                 <input
                   type="number"
                   step="0.01"
-                  placeholder="+15 or -6"
+                  placeholder="+4 or -2"
                   value={pnl}
                   onChange={(e) => setPnl(e.target.value)}
                   required
@@ -836,7 +947,7 @@ export default function PreTradeChecklist() {
                 </label>
                 <input
                   type="text"
-                  placeholder={`e.g. ${strategy} on ${timeframe} worked cleanly`}
+                  placeholder={`e.g. ${strategy} (${targetRR}) worked cleanly`}
                   value={learning}
                   onChange={(e) => setLearning(e.target.value)}
                   className={`w-full border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 ${inputBg}`}
@@ -865,10 +976,12 @@ export default function PreTradeChecklist() {
         </div>
 
         {/* SAVED JOURNAL HISTORY TABLE */}
-        <div className={`rounded-3xl border p-6 sm:p-8 shadow-xl transition-colors ${cardBg}`}>
+        <div
+          className={`rounded-3xl border p-4 sm:p-8 shadow-xl transition-colors ${cardBg}`}
+        >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
             <div>
-              <h2 className={`text-lg font-medium ${headingText}`}>
+              <h2 className={`text-base sm:text-lg font-medium ${headingText}`}>
                 Saved Trading Journal ({journalEntries.length} Trades)
               </h2>
               <div className="flex items-center gap-4 text-xs mt-1">
@@ -907,7 +1020,9 @@ export default function PreTradeChecklist() {
           </div>
 
           {journalEntries.length === 0 ? (
-            <div className={`text-center py-8 text-sm border border-dashed rounded-2xl ${mutedText} ${dividerBorder}`}>
+            <div
+              className={`text-center py-8 text-sm border border-dashed rounded-2xl ${mutedText} ${dividerBorder}`}
+            >
               Abhi tak koi trade save nahi hua hai. Upar apna setup aur rules
               verify karke pehla trade log karein.
             </div>
@@ -915,11 +1030,13 @@ export default function PreTradeChecklist() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className={`border-b text-[11px] uppercase ${dividerBorder} ${mutedText}`}>
+                  <tr
+                    className={`border-b text-[11px] uppercase ${dividerBorder} ${mutedText}`}
+                  >
                     <th className="py-3 px-2">Time / Session</th>
                     <th className="py-3 px-2">Pair / TF</th>
                     <th className="py-3 px-2">Strategy</th>
-                    <th className="py-3 px-2">Type / Lot</th>
+                    <th className="py-3 px-2">Type / Risk</th>
                     <th className="py-3 px-2">Result / P&L</th>
                     <th className="py-3 px-2">Key Learning</th>
                     <th className="py-3 px-2 text-right">Del</th>
@@ -969,6 +1086,11 @@ export default function PreTradeChecklist() {
                         <span className="font-mono text-amber-500 font-semibold">
                           {entry.lotSize}
                         </span>
+                        {entry.riskAmount && (
+                          <div className="text-[10px] text-rose-400 mt-0.5 font-mono">
+                            SL: ${entry.riskAmount} • {entry.targetRR || "1:2"}
+                          </div>
+                        )}
                       </td>
                       <td className="py-3 px-2 whitespace-nowrap">
                         <span
@@ -983,7 +1105,9 @@ export default function PreTradeChecklist() {
                           )
                         </span>
                       </td>
-                      <td className={`py-3 px-2 max-w-[180px] truncate ${mutedText}`}>
+                      <td
+                        className={`py-3 px-2 max-w-[180px] truncate ${mutedText}`}
+                      >
                         {entry.learning}
                       </td>
                       <td className="py-3 px-2 text-right">
